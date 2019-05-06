@@ -1,11 +1,11 @@
 package main
 
 import (
-	"github.com/liuaifu/buffer"
 	"log"
 	"net"
 	"sync"
 	"time"
+	"github.com/liuaifu/buffer"
 )
 
 type Session struct {
@@ -14,9 +14,9 @@ type Session struct {
 	chStatus    chan int
 	chIdle      chan int
 	key         string
-	serverAddr  string    //代理服务器地址
-	serviceAddr string    //目标服务地址
-	onceStop    sync.Once //避免stop重复调用
+	serverAddr  string       //代理服务器地址
+	serviceAddr string       //目标服务地址
+	onceStop    sync.Once    //避免stop重复调用
 }
 
 func newSession() *Session {

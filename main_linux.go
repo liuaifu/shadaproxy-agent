@@ -1,14 +1,14 @@
 package main
 
 import (
-	"encoding/xml"
-	"flag"
-	"io/ioutil"
-	"log"
 	"os"
-	"os/exec"
-	"path/filepath"
+	"log"
+	"flag"
 	"sync"
+	"os/exec"
+	"io/ioutil"
+	"encoding/xml"
+	"path/filepath"
 )
 
 type ServiceCfg struct {
@@ -38,7 +38,7 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	if fi.Mode()&os.ModeSymlink == os.ModeSymlink {
+	if fi.Mode() & os.ModeSymlink == os.ModeSymlink {
 		execPath, err = os.Readlink(execPath)
 		if err != nil {
 			log.Fatal(err)
@@ -60,7 +60,7 @@ func init() {
 
 func main() {
 	println("shadaproxy-agent v0.4")
-	println("copyright(c) 2011-2018 laf163@gmail.com")
+	println("copyright(c) 2011-2019 laf163@gmail.com")
 	println("")
 	if len(os.Args) >= 2 && (os.Args[1] == "-h" || os.Args[1] == "--help") {
 		println("Usage:")
