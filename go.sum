@@ -1,0 +1,4 @@
+github.com/liuaifu/buffer v0.0.0-20140215093423-d189a55b8589 h1:eRe1mafN1139x0JbpojqIHVTMb0tiPUJaajpXT5kYdU=
+github.com/liuaifu/buffer v0.0.0-20140215093423-d189a55b8589/go.mod h1:J6WG+ICI+9cw/9kj73XWwbUuIbcP8m+Of1ctbuAY9Ts=
+github.com/liuaifu/winservice v0.0.0-20180719085213-766ce08ca111 h1:igJp0BIkXjOjZkj9okfv1gM2WAsZ+xusehFhYkuiCD4=
+github.com/liuaifu/winservice v0.0.0-20180719085213-766ce08ca111/go.mod h1:EmiYZG+SjtplWicVD9zZBWdFnQE5nLdXrM1X3SuYTMo=

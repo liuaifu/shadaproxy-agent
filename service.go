@@ -30,13 +30,19 @@ func (this *Service) loop() {
 		addr, err := net.ResolveTCPAddr("tcp", this.serverAddr)
 		if err != nil {
 			log.Printf("resolve %s fail! %v\n", this.serverAddr, err)
-			time.Sleep(60 * time.Second)
+			if isQuitting(time.Minute) {
+				break
+			}
+			time.Sleep(time.Minute)
 			continue
 		}
 		cn, err := net.DialTCP("tcp", nil, addr)
 		if err != nil {
 			log.Printf("connect to %s fail! %v\n", this.serverAddr, err)
-			time.Sleep(60 * time.Second)
+			if isQuitting(time.Minute) {
+				break
+			}
+			time.Sleep(time.Minute)
 			continue
 		}
 		log.Printf("connected to server %s.\n", this.serverAddr)

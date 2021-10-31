@@ -28,7 +28,36 @@ func newSession() *Session {
 }
 
 func (this *Session) loop() {
-	this.sendKey()
+	if !this.sendKey() {
+		log.Printf("send key eror")
+		isQuitting(time.Second)
+		this.onceStop.Do(this.stop)
+		return
+	}
+	ok, msgType, result, _ := this.receiveServerMsg()
+	if ok {
+		if msgType == PKT_REPORT_KEY {	//上报key应答
+			if result == int32(0) {
+				log.Printf("invalid key: %s", this.key)
+				isQuitting(time.Minute)		//延迟，避免过快重连
+				this.onceStop.Do(this.stop)
+				return
+			}
+			//到这里说明key是有效的
+		} else {
+			//如果能到这里一般是协议不对
+			log.Printf("invalid message: 0x%08X", msgType)
+			isQuitting(time.Minute)
+			this.onceStop.Do(this.stop)
+			return
+		}
+	} else {
+		log.Printf("receive message error")
+		isQuitting(time.Second)
+		this.onceStop.Do(this.stop)
+		return
+	}
+
 	this.serverLoop()
 }
 
@@ -62,7 +91,7 @@ func (this *Session) stop() {
 * 报告key给服务器
 * 如果服务器发现key不存在会关闭会话
  */
-func (this *Session) sendKey() {
+func (this *Session) sendKey() bool {
 	head := Head{}
 	head.pkt_type = PKT_REPORT_KEY
 
@@ -70,7 +99,7 @@ func (this *Session) sendKey() {
 	buf.WriteStr(this.key)
 	body := buf.Buffer()
 
-	this.sendToServer(&head, &body)
+	return this.sendToServer(&head, &body)
 }
 
 /**
@@ -94,7 +123,6 @@ func (this *Session) sendIdleRoutine() {
 		case <-this.chIdle:
 			log.Printf("exit idle routine")
 			goto end
-			break
 		}
 	}
 end:
@@ -180,16 +208,64 @@ func (this *Session) onCPMsg(msgType uint32, msgLength uint32, result int32, dat
 	case PKT_FORWARD_CLIENT_DATA: //请求转发客户端消息
 		this.sendToService(&data)
 		break
-	case PKT_REPORT_KEY: //上报key应答
-		if result == int32(0) {
-			log.Panicf("invalid key: %s", this.key)
-		}
 	default:
 		log.Printf("unknown message type=0x%08X, length=%d, result=%d\n", msgType, msgLength, result)
 		return false
 	}
 
 	return true
+}
+
+func (this *Session) receiveServerMsg() (bool, uint32, int32, []byte) {
+	var header = []byte{}
+	var msgType, bodyLength uint32
+	var result int32
+	var body = []byte{}
+
+	for {
+		tmpBuf := make([]byte, 12 - len(header))
+		n, err := this.cnServer.Read(tmpBuf)
+		if err != nil {
+			//log.Printf("server(%s) has closed!\n", g_config.ServerAddr)
+			return false, 0, 0, nil
+		}
+		header = append(header, tmpBuf[:n]...)
+		if len(header) >= 12 {
+			msgType = uint32(header[0])
+			msgType |= uint32(header[1]) << 8
+			msgType |= uint32(header[2]) << 16
+			msgType |= uint32(header[3]) << 24
+
+			bodyLength = uint32(header[4])
+			bodyLength |= uint32(header[5]) << 8
+			bodyLength |= uint32(header[6]) << 16
+			bodyLength |= uint32(header[7]) << 24
+
+			result = int32(header[8])
+			result |= int32(header[9]) << 8
+			result |= int32(header[10]) << 16
+			result |= int32(header[11]) << 24
+
+			break
+		}
+	}
+
+	if bodyLength > 0 {
+		for {
+			tmpBuf := make([]byte, bodyLength - uint32(len(body)))
+			n, err := this.cnServer.Read(tmpBuf)
+			if err != nil {
+				//log.Printf("server(%s) has closed!\n", g_config.ServerAddr)
+				return false, msgType, result, nil
+			}
+			body = append(body, tmpBuf[:n]...)
+			if uint32(len(body)) >= bodyLength {
+				break
+			}
+		}
+	}
+
+	return true, msgType, result, body
 }
 
 func (this *Session) serverLoop() {

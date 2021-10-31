@@ -5,6 +5,7 @@ import (
 	"log"
 	"flag"
 	"sync"
+	"time"
 	"os/exec"
 	"io/ioutil"
 	"encoding/xml"
@@ -58,9 +59,18 @@ func init() {
 	g_chClose = make(chan int)
 }
 
+func isQuitting(timeout time.Duration) bool {
+	select {
+	case <- time.After(timeout):
+		return false
+	case <- g_chClose:
+		return true
+	}
+}
+
 func main() {
-	println("shadaproxy-agent v0.4")
-	println("copyright(c) 2011-2019 laf163@gmail.com")
+	println("shadaproxy-agent v0.5")
+	println("copyright(c) 2011-2021 laf163@gmail.com")
 	println("")
 	if len(os.Args) >= 2 && (os.Args[1] == "-h" || os.Args[1] == "--help") {
 		println("Usage:")
@@ -106,4 +116,5 @@ func main() {
 	}
 
 	waiter.Wait()
+	log.Printf("finished.")
 }
