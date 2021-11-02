@@ -203,11 +203,9 @@ func (this *Session) onCPMsg(msgType uint32, msgLength uint32, result int32, dat
 	case PKT_FORWARD_SERVER_DATA: //Server消息
 		break
 	case PKT_CONNECT: //请求连接指定的服务器
-		this.onReqConnect(msgType, msgLength, result, data)
-		break
+		return this.onReqConnect(msgType, msgLength, result, data)
 	case PKT_FORWARD_CLIENT_DATA: //请求转发客户端消息
-		this.sendToService(&data)
-		break
+		return this.sendToService(&data)
 	default:
 		log.Printf("unknown message type=0x%08X, length=%d, result=%d\n", msgType, msgLength, result)
 		return false
