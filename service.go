@@ -55,16 +55,26 @@ func (this *Service) loop() {
 			case <-g_chClose:
 				goto end
 			case status := <-this.chStatus:
+				//log.Printf("status=%d,idle=%d,total=%d\n", status, idleConn, totalConn)
 				if status == 1 {
 					//状态由空闲变为使用
-					idleConn--
+					if idleConn > 0 {
+						idleConn--
+					}
 				} else if status == 2 {
 					//状态由使用变为关闭
-					totalConn--
+					if totalConn > 0 {
+						totalConn--
+					}
 				} else if status == 3 {
 					//状态由空闲变为关闭
-					idleConn--
-					totalConn--
+					if idleConn > 0 {
+						idleConn--
+					}
+
+					if totalConn > 0 {
+						totalConn--
+					}
 				}
 			}
 		}

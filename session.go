@@ -189,6 +189,7 @@ func (this *Session) onReqConnect(msgType uint32, msgLength uint32, result int32
 	cn.SetKeepAlive(true)
 	log.Printf("connect to service(%s) successful\n", this.serviceAddr)
 	this.cnService = cn
+	this.chStatus <- 1
 	go this.serviceLoop()
 	head.result = int32(1)
 	this.sendToServer(head, nil)
@@ -315,8 +316,6 @@ Exit:
 }
 
 func (this *Session) serviceLoop() {
-	this.chStatus <- 1
-
 	buf := make([]byte, 2048)
 	head := Head{}
 	head.pkt_type = PKT_FORWARD_SERVER_DATA

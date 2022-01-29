@@ -69,8 +69,8 @@ func isQuitting(timeout time.Duration) bool {
 }
 
 func main() {
-	println("shadaproxy-agent v0.5")
-	println("copyright(c) 2011-2021 laf163@gmail.com")
+	println("shadaproxy-agent v0.6")
+	println("copyright(c) 2011-2022 laf163@gmail.com")
 	println("")
 	if len(os.Args) >= 2 && (os.Args[1] == "-h" || os.Args[1] == "--help") {
 		println("Usage:")
@@ -101,7 +101,11 @@ func main() {
 	waiter := &sync.WaitGroup{}
 	waiter.Add(len(g_config.Services))
 	for _, serviceCfg := range g_config.Services {
-		log.Printf("service: %s, %s\n", serviceCfg.Name, serviceCfg.ServiceAddr)
+		log.Printf("service: %s, %s, %d\n", serviceCfg.Name, serviceCfg.ServiceAddr, serviceCfg.PoolSize)
+
+		if serviceCfg.PoolSize > 512 {
+			serviceCfg.PoolSize = 512
+		}
 
 		service := newService()
 		service.name = serviceCfg.Name
